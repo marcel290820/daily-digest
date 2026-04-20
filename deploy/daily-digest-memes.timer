@@ -1,0 +1,10 @@
+[Unit]
+Description=Memes digest at 08:05 Europe/Berlin
+
+[Timer]
+OnCalendar=*-*-* 08:05:00 Europe/Berlin
+Persistent=true
+Unit=daily-digest@memes.service
+
+[Install]
+WantedBy=timers.target
