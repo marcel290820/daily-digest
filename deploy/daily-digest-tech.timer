@@ -1,0 +1,10 @@
+[Unit]
+Description=Tech/ML/crypto digest at 08:00 Europe/Berlin
+
+[Timer]
+OnCalendar=*-*-* 08:00:00 Europe/Berlin
+Persistent=true
+Unit=daily-digest@tech.service
+
+[Install]
+WantedBy=timers.target

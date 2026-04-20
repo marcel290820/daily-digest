@@ -1,0 +1,18 @@
+[Unit]
+Description=Daily digest (%i) to Telegram
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=digest
+Group=digest
+WorkingDirectory=/opt/daily-digest
+EnvironmentFile=/etc/daily-digest/env
+ExecStart=/opt/daily-digest/.venv/bin/python -m daily_digest %i
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
