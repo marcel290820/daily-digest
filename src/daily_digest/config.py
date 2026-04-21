@@ -27,8 +27,8 @@ SUBREDDITS_TECH: tuple[str, ...] = ("MachineLearning", "technology", "CryptoCurr
 SUBREDDITS_MEMES: tuple[str, ...] = ("memes", "dankmemes")
 
 RSS_FEEDS_NEWS: tuple[tuple[str, str, int], ...] = (
-    ("Tagesschau", "https://www.tagesschau.de/xml/rss2", 3),
-    ("Handelsblatt", "https://www.handelsblatt.com/contentexport/feed/schlagzeilen", 2),
+    ("Tagesschau", "https://www.tagesschau.de/xml/rss2", 5),
+    ("Handelsblatt", "https://www.handelsblatt.com/contentexport/feed/schlagzeilen", 5),
 )
 
 TECH_HN_LIMIT = 5
