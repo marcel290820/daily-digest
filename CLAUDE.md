@@ -2,11 +2,59 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Repository Status
+## What This Project Does
 
-This repo is newly scaffolded. As of the initial commit there is no application source code, no build system, no tests, and no dependencies. `README.md` is empty. The project name (`daily-digest`) is the only signal of intent — confirm the product direction with the user before assuming it.
+Three Telegram digests sent every morning (Europe/Berlin): Tech & ML at 08:00, Memes at 08:05, World News at 08:10. Delivered to a single Telegram bot/chat. No LLM, no ranking — native source order only.
 
-When the user asks you to add functionality, expect to also choose and set up the toolchain (language, package manager, test runner, linter). Ask first rather than picking silently.
+## Stack
+
+- **Python 3.11+** package, `src/` layout, `hatchling` build backend (`pyproject.toml`).
+- **Dependencies:** `httpx` (async HTTP for HN + Reddit + Telegram + RSS fetch), `feedparser` (RSS parsing). Nothing else.
+- **Delivery:** Telegram Bot API `sendMessage` with `parse_mode=MarkdownV2`. 4096-char chunking in `telegram.py`.
+- **Scheduling:** systemd `.timer` units with `OnCalendar=... Europe/Berlin` (DST-safe). One templated `daily-digest@.service` oneshot that takes the digest name as `%i`.
+- **Secrets:** `/etc/daily-digest/env` on the VM (mode 0600), loaded via `EnvironmentFile=`. Never committed. `.env.example` documents the shape.
+- **No Docker, no database, no CI/CD, no OAuth, no paid APIs.**
+
+## Layout
+
+```
+src/daily_digest/
+├── __main__.py         # CLI: python -m daily_digest {tech,memes,news} [--dry-run]
+├── __init__.py         # Item dataclass (title, url, source, score)
+├── config.py           # env vars + subreddit / RSS lists + per-source limits
+├── format.py           # MarkdownV2 render
+├── telegram.py         # Bot API sender (4096-char chunking)
+└── sources/
+    ├── hackernews.py   # Firebase REST (/v0/topstories.json + /v0/item/{id}.json), unauth
+    ├── reddit.py       # /r/{sub}/top.json?t=day, unauth, descriptive UA required
+    └── rss.py          # httpx fetch + asyncio.to_thread(feedparser.parse, ...)
+deploy/
+├── daily-digest@.service
+├── daily-digest-{tech,memes,news}.timer
+└── install.sh
+```
+
+Every source returns `list[Item]`. `__main__.py:_gather_*` uses `asyncio.gather(..., return_exceptions=True)` so one failing source does not block the others.
+
+## Running
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -e .
+.venv/bin/python -m daily_digest tech  --dry-run    # stdout, no Telegram
+.venv/bin/python -m daily_digest memes --dry-run
+.venv/bin/python -m daily_digest news  --dry-run
+```
+
+Real send: set `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `REDDIT_USER_AGENT`, drop `--dry-run`. See `README.md` for Hetzner deploy.
+
+## Conventions
+
+- **Keep dependencies minimal.** Two third-party packages is the current ceiling. Prefer stdlib (`asyncio`, `argparse`, `datetime`, `logging`, `json`) before adding anything.
+- **Source adapters are dumb.** Fetch → map to `Item` → return. No ranking, no dedupe, no LLM. Limits live in `config.py`, not in the adapter.
+- **Failures are logged and skipped**, not raised. The digest still sends whatever other sources returned.
+- **Secrets live only in `/etc/daily-digest/env` on the VM.** Do not inline tokens into code, tests, or commit messages.
+- **Never hardcode UTC offsets** for scheduling; `OnCalendar=... Europe/Berlin` handles DST.
 
 ## Entire Harness Integration
 
