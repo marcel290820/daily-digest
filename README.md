@@ -43,8 +43,14 @@ One-time bootstrap, as root:
 
 ```bash
 apt update && apt install -y python3 python3-venv git
-useradd -r -m -d /opt/daily-digest -s /bin/bash digest
+
+# System account for the daemon. No -m (skel files would make the home dir
+# non-empty and break `git clone` below). Create the home dir ourselves,
+# empty and owned by digest, then clone into it.
+useradd -r -s /bin/bash -d /opt/daily-digest digest
+install -d -m 0755 -o digest -g digest /opt/daily-digest
 sudo -u digest git clone <repo-url> /opt/daily-digest
+
 cd /opt/daily-digest
 sudo -u digest python3 -m venv .venv
 sudo -u digest .venv/bin/pip install -e .
