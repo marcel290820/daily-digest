@@ -87,3 +87,30 @@ Apr 21 09:15:13 hetzner-4cpu-8gb python[1796345]: For more information check: ht
 Apr 21 09:15:13 hetzner-4cpu-8gb systemd[1]: daily-digest@tech.service: Main process exited, code=exited, status=1/FAILURE
 Apr 21 09:15:13 hetzner-4cpu-8gb systemd[1]: daily-digest@tech.service: Failed with result 'exit-code'.
 Apr 21 09:15:13 hetzner-4cpu-8gb systemd[1]: Failed to start daily-digest@tech.service - Daily digest (tech) to Telegram.
+
+---
+
+still have an error: root@hetzner-4cpu-8gb:/opt/daily-digest# sudo systemctl start daily-digest@tech.service
+Job for daily-digest@tech.service failed because the control process exited with error code.
+See "systemctl status daily-digest@tech.service" and "journalctl -xeu daily-digest@tech.service" for details.
+root@hetzner-4cpu-8gb:/opt/daily-digest# journalctl -u daily-digest@tech.service -n 20 --no-pager
+Apr 21 09:18:47 hetzner-4cpu-8gb python[1796421]:   File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
+Apr 21 09:18:47 hetzner-4cpu-8gb python[1796421]:     return runner.run(main)
+Apr 21 09:18:47 hetzner-4cpu-8gb python[1796421]:            ^^^^^^^^^^^^^^^^
+Apr 21 09:18:47 hetzner-4cpu-8gb python[1796421]:   File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+Apr 21 09:18:47 hetzner-4cpu-8gb python[1796421]:     return self._loop.run_until_complete(task)
+Apr 21 09:18:47 hetzner-4cpu-8gb python[1796421]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Apr 21 09:18:47 hetzner-4cpu-8gb python[1796421]:   File "/usr/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+Apr 21 09:18:47 hetzner-4cpu-8gb python[1796421]:     return future.result()
+Apr 21 09:18:47 hetzner-4cpu-8gb python[1796421]:            ^^^^^^^^^^^^^^^
+Apr 21 09:18:47 hetzner-4cpu-8gb python[1796421]:   File "/opt/daily-digest/src/daily_digest/__main__.py", line 75, in _run
+Apr 21 09:18:47 hetzner-4cpu-8gb python[1796421]:     await send_markdown(text)
+Apr 21 09:18:47 hetzner-4cpu-8gb python[1796421]:   File "/opt/daily-digest/src/daily_digest/telegram.py", line 40, in send_markdown
+Apr 21 09:18:47 hetzner-4cpu-8gb python[1796421]:     r.raise_for_status()
+Apr 21 09:18:47 hetzner-4cpu-8gb python[1796421]:   File "/opt/daily-digest/.venv/lib/python3.12/site-packages/httpx/_models.py", line 829, in raise_for_status
+Apr 21 09:18:47 hetzner-4cpu-8gb python[1796421]:     raise HTTPStatusError(message, request=request, response=self)
+Apr 21 09:18:47 hetzner-4cpu-8gb python[1796421]: httpx.HTTPStatusError: Client error '400 Bad Request' for url 'https://api.telegram.org/bot8774479622:REDACTED/sendMessage'
+Apr 21 09:18:47 hetzner-4cpu-8gb python[1796421]: For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+Apr 21 09:18:47 hetzner-4cpu-8gb systemd[1]: daily-digest@tech.service: Main process exited, code=exited, status=1/FAILURE
+Apr 21 09:18:47 hetzner-4cpu-8gb systemd[1]: daily-digest@tech.service: Failed with result 'exit-code'.
+Apr 21 09:18:47 hetzner-4cpu-8gb systemd[1]: Failed to start daily-digest@tech.service - Daily digest (tech) to Telegram.
