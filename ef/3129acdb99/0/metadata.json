@@ -1,0 +1,61 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "ef3129acdb99",
+  "session_id": "6b3ef33a-0514-47f8-a2c0-eeab85dea76e",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-21T09:14:30.938207Z",
+  "branch": "master",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "src/daily_digest/format.py",
+    "src/daily_digest/sources/reddit.py"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "214be1c30810",
+  "token_usage": {
+    "input_tokens": 333,
+    "cache_creation_tokens": 502832,
+    "cache_read_tokens": 11836085,
+    "output_tokens": 82843,
+    "api_call_count": 147
+  },
+  "session_metrics": {
+    "turn_count": 5
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-21T09:14:30.89564Z",
+    "agent_lines": 24,
+    "agent_removed": 21,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 24,
+    "total_lines_changed": 45,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 42,
+      "agent_lines_removed": 4
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 42,
+      "agent_lines_removed": 4
+    }
+  ]
+}
