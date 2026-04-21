@@ -1,0 +1,10 @@
+[Unit]
+Description=World news digest at 08:10 Europe/Berlin
+
+[Timer]
+OnCalendar=*-*-* 08:10:00 Europe/Berlin
+Persistent=true
+Unit=daily-digest@news.service
+
+[Install]
+WantedBy=timers.target
