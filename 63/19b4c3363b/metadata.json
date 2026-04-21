@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.5.5",
+  "checkpoint_id": "6319b4c3363b",
+  "strategy": "manual-commit",
+  "branch": "master",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "CLAUDE.md",
+    "README.md",
+    "deploy/daily-digest-news.timer",
+    "deploy/install.sh"
+  ],
+  "sessions": [
+    {
+      "metadata": "/63/19b4c3363b/0/metadata.json",
+      "transcript": "/63/19b4c3363b/0/full.jsonl",
+      "content_hash": "/63/19b4c3363b/0/content_hash.txt",
+      "prompt": "/63/19b4c3363b/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 78,
+    "cache_creation_tokens": 79773,
+    "cache_read_tokens": 1953828,
+    "output_tokens": 15366,
+    "api_call_count": 34
+  }
+}
