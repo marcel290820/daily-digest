@@ -1,0 +1,5 @@
+when i follow the deployment instruction it has an error. clone the repo to the home dir of the user cant work because it already exists. check this problem and fix the guide
+
+---
+
+as i already ran the original useradd command. how can i reverse my actions or adapt to the new guide? is it enough to just remove the home dir?
