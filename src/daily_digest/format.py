@@ -10,6 +10,10 @@ def escape(text: str) -> str:
     return text.translate(_ESCAPE_TABLE)
 
 
+def _escape_url(url: str) -> str:
+    return url.replace("\\", "\\\\").replace(")", "\\)")
+
+
 def _score_tag(item: Item) -> str:
     if item.score is None:
         return ""
@@ -28,7 +32,7 @@ def render(heading_emoji: str, heading: str, items: list[Item]) -> str:
     for i, item in enumerate(items, 1):
         line = (
             f"{i}\\. {_score_tag(item)}"
-            f"[{escape(item.title)}]({item.url}) — `{escape(item.source)}`"
+            f"[{escape(item.title)}]({_escape_url(item.url)}) — `{escape(item.source)}`"
         )
         lines.append(line)
     return "\n".join(lines)
