@@ -1,6 +1,10 @@
+import logging
+
 import httpx
 
 from daily_digest.config import telegram_bot_token, telegram_chat_id
+
+log = logging.getLogger("daily_digest.telegram")
 
 _MAX_LEN = 4096
 
@@ -37,4 +41,6 @@ async def send_markdown(text: str) -> None:
                 },
                 timeout=15.0,
             )
+            if r.is_error:
+                log.error("Telegram error %s: %s", r.status_code, r.text)
             r.raise_for_status()
