@@ -18,7 +18,7 @@ def _score_tag(item: Item) -> str:
     if item.score is None:
         return ""
     if item.score >= 1000:
-        return f"\\[{item.score / 1000:.1f}k\\] "
+        return f"\\[{escape(f'{item.score / 1000:.1f}k')}\\] "
     return f"\\[{item.score}\\] "
 
 
