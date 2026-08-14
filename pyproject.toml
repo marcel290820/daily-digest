@@ -1,7 +1,7 @@
 [project]
 name = "daily-digest"
 version = "0.1.0"
-description = "Daily digests of tech/meme/world-news highlights delivered to Telegram."
+description = "Daily digests of tech and world-news highlights delivered to Telegram."
 requires-python = ">=3.11"
 dependencies = [
     "httpx>=0.27",

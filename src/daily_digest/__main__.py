@@ -7,48 +7,23 @@ from contextlib import closing
 from daily_digest import Item
 from daily_digest.config import (
     FEARGREED_EXTREMES,
-    MEMES_REDDIT_PER_SUB,
     RSS_FEEDS_NEWS,
-    SUBREDDITS_MEMES,
-    SUBREDDITS_TECH,
     TECH_HN_LIMIT,
-    TECH_REDDIT_PER_SUB,
     feargreed_db_path,
 )
 from daily_digest.feargreed import CRYPTO, STOCKS, Reading, alert_needed
 from daily_digest.format import render, render_feargreed, render_feargreed_alert
 from daily_digest.sources import feargreed as feargreed_source
-from daily_digest.sources import hackernews, reddit, rss
+from daily_digest.sources import hackernews, rss
 from daily_digest import store
 
 log = logging.getLogger("daily_digest")
 
 
 async def _gather_tech() -> list[Item]:
-    hn_task = hackernews.top_stories(TECH_HN_LIMIT)
-    reddit_tasks = [reddit.top_of_day(s, TECH_REDDIT_PER_SUB) for s in SUBREDDITS_TECH]
-    results = await asyncio.gather(hn_task, *reddit_tasks, return_exceptions=True)
-
-    items: list[Item] = []
-    labels = ["HN", *SUBREDDITS_TECH]
-    for label, result in zip(labels, results):
-        if isinstance(result, Exception):
-            log.warning("source %s failed: %s", label, result)
-            continue
-        items.extend(result)
-    return items
-
-
-async def _gather_memes() -> list[Item]:
-    tasks = [reddit.top_of_day(s, MEMES_REDDIT_PER_SUB) for s in SUBREDDITS_MEMES]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-    items: list[Item] = []
-    for sub, result in zip(SUBREDDITS_MEMES, results):
-        if isinstance(result, Exception):
-            log.warning("r/%s failed: %s", sub, result)
-            continue
-        items.extend(result)
-    return items
+    """HN is the only tech source, so a failure here raises and the run exits
+    non-zero rather than sending an empty digest."""
+    return await hackernews.top_stories(TECH_HN_LIMIT)
 
 
 async def _gather_news() -> list[Item]:
@@ -80,7 +55,6 @@ async def _gather_feargreed() -> list[Reading]:
 
 DIGESTS = {
     "tech": ("🗞", "Tech & ML", _gather_tech),
-    "memes": ("😂", "Memes", _gather_memes),
     "news": ("🌍", "World News", _gather_news),
 }
 

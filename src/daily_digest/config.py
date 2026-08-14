@@ -21,25 +21,16 @@ def telegram_chat_id() -> str:
     return _required_env("TELEGRAM_CHAT_ID")
 
 
-def reddit_user_agent() -> str:
-    return os.environ.get("REDDIT_USER_AGENT", "daily-digest/0.1")
-
-
 def feargreed_db_path() -> str:
     return os.environ.get("DIGEST_DB_PATH", "feargreed.db")
 
-
-SUBREDDITS_TECH: tuple[str, ...] = ("MachineLearning", "technology", "CryptoCurrency")
-SUBREDDITS_MEMES: tuple[str, ...] = ("memes", "dankmemes")
 
 RSS_FEEDS_NEWS: tuple[tuple[str, str, int], ...] = (
     ("Tagesschau", "https://www.tagesschau.de/xml/rss2", 5),
     ("Handelsblatt", "https://www.handelsblatt.com/contentexport/feed/schlagzeilen", 5),
 )
 
-TECH_HN_LIMIT = 5
-TECH_REDDIT_PER_SUB = 2
-MEMES_REDDIT_PER_SUB = 5
+TECH_HN_LIMIT = 10
 
 # Unofficial CNN endpoint. It answers 418 ("I'm a teapot. You're a bot.")
 # unless both a browser User-Agent and a cnn.com Referer are sent.
