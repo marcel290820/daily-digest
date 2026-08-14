@@ -4,12 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Does
 
-Three Telegram digests sent every morning (Europe/Berlin): Tech & ML at 08:00, Memes at 08:05, World News at 08:10. Delivered to a single Telegram bot/chat. No LLM, no ranking — native source order only. A fourth command, `feargreed`, runs hourly and alerts when the CNN (stocks) or alternative.me (crypto) Fear & Greed index enters an extreme zone.
+Two Telegram digests sent every morning (Europe/Berlin): Tech & ML at 08:00, World News at 08:10. Delivered to a single Telegram bot/chat. No LLM, no ranking — native source order only. A third command, `feargreed`, runs hourly and alerts when the CNN (stocks) or alternative.me (crypto) Fear & Greed index enters an extreme zone.
 
 ## Stack
 
 - **Python 3.11+** package, `src/` layout, `hatchling` build backend (`pyproject.toml`).
-- **Dependencies:** `httpx` (async HTTP for HN + Reddit + Telegram + RSS + Fear & Greed), `feedparser` (RSS parsing). Nothing else. SQLite is stdlib `sqlite3`.
+- **Dependencies:** `httpx` (async HTTP for HN + Telegram + RSS + Fear & Greed), `feedparser` (RSS parsing). Nothing else. SQLite is stdlib `sqlite3`.
 - **Delivery:** Telegram Bot API `sendMessage` with `parse_mode=MarkdownV2`. 4096-char chunking in `telegram.py`.
 - **Scheduling:** systemd `.timer` units with `OnCalendar=... Europe/Berlin` (DST-safe). One templated `daily-digest@.service` oneshot that takes the command name as `%i`.
 - **State:** one SQLite file of Fear & Greed readings at `DIGEST_DB_PATH` (`/var/lib/daily-digest/feargreed.db` on the VM, via `StateDirectory=`). Nothing else is persisted.
@@ -21,9 +21,9 @@ Three Telegram digests sent every morning (Europe/Berlin): Tech & ML at 08:00, M
 
 ```
 src/daily_digest/
-├── __main__.py         # CLI: python -m daily_digest {tech,memes,news,feargreed} [--dry-run] [--backfill]
+├── __main__.py         # CLI: python -m daily_digest {tech,news,feargreed} [--dry-run] [--backfill]
 ├── __init__.py         # Item dataclass (title, url, source, score)
-├── config.py           # env vars + subreddit / RSS lists + per-source limits + F&G thresholds
+├── config.py           # env vars + RSS list + per-source limits + F&G thresholds
 ├── feargreed.py        # Reading dataclass, zone(), alert_needed() — pure, no I/O
 ├── format.py           # MarkdownV2 render
 ├── store.py            # sqlite3 reading history, idempotent writes
@@ -31,14 +31,13 @@ src/daily_digest/
 └── sources/
     ├── feargreed.py    # CNN graphdata + alternative.me /fng/, unauth; parse split from fetch
     ├── hackernews.py   # Firebase REST (/v0/topstories.json + /v0/item/{id}.json), unauth
-    ├── reddit.py       # /r/{sub}/top.json?t=day, unauth, descriptive UA required
     └── rss.py          # httpx fetch + asyncio.to_thread(feedparser.parse, ...)
 tests/
 ├── fixtures/           # real API payloads, captured once
 └── test_feargreed_*.py
 deploy/
 ├── daily-digest@.service
-├── daily-digest-{tech,memes,news}.timer
+├── daily-digest-{tech,news}.timer
 ├── daily-digest-feargreed.timer
 └── install.sh
 ```
@@ -59,13 +58,12 @@ Every item source returns `list[Item]`; the Fear & Greed sources return `Reading
 python3 -m venv .venv
 .venv/bin/pip install -e .
 .venv/bin/python -m daily_digest tech      --dry-run    # stdout, no Telegram
-.venv/bin/python -m daily_digest memes     --dry-run
 .venv/bin/python -m daily_digest news      --dry-run
 .venv/bin/python -m daily_digest feargreed --dry-run    # also skips the DB write
 .venv/bin/python -m unittest discover
 ```
 
-Real send: set `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `REDDIT_USER_AGENT`, drop `--dry-run`. See `README.md` for Hetzner deploy.
+Real send: set `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, drop `--dry-run`. See `README.md` for Hetzner deploy.
 
 ## Conventions
 

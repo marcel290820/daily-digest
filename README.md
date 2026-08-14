@@ -1,15 +1,14 @@
 # daily-digest
 
-Three Telegram digests delivered every morning (Europe/Berlin), plus an hourly Fear & Greed watch:
+Two Telegram digests delivered every morning (Europe/Berlin), plus an hourly Fear & Greed watch:
 
 | Time  | Digest | Sources |
 |-------|--------|---------|
-| 08:00 | Tech & ML | Hacker News + `r/MachineLearning`, `r/technology`, `r/CryptoCurrency` |
-| 08:05 | Memes | `r/memes`, `r/dankmemes` |
+| 08:00 | Tech & ML | Hacker News, top 10 |
 | 08:10 | World News | Tagesschau RSS, Handelsblatt RSS, plus a Fear & Greed section |
 | hourly at :17 | Fear & Greed check | CNN (stocks), alternative.me (crypto) |
 
-No auth anywhere. No Docker. One Python package, four systemd timers, one Telegram bot token, one SQLite file.
+No auth anywhere. No Docker. One Python package, three systemd timers, one Telegram bot token, one SQLite file.
 
 ## Fear & Greed
 
@@ -24,7 +23,6 @@ Two indices, each 0-100: CNN's for US stocks, alternative.me's for crypto.
 
 - Python 3.11+
 - Telegram bot token + chat ID (create via `@BotFather`, then send the bot a message and read `chat_id` from `getUpdates`)
-- For Reddit: a descriptive `User-Agent` string (Reddit throttles generic UAs to 429)
 
 ## Local dev
 
@@ -35,7 +33,6 @@ cp .env.example .env   # fill in values
 set -a; source .env; set +a
 
 .venv/bin/python -m daily_digest tech      --dry-run
-.venv/bin/python -m daily_digest memes     --dry-run
 .venv/bin/python -m daily_digest news      --dry-run
 .venv/bin/python -m daily_digest feargreed --dry-run
 ```
@@ -76,7 +73,6 @@ install -d -m 0700 -o digest -g digest /etc/daily-digest
 cat >/etc/daily-digest/env <<'EOF'
 TELEGRAM_BOT_TOKEN=...
 TELEGRAM_CHAT_ID=...
-REDDIT_USER_AGENT=daily-digest/0.1 (by /u/yourname)
 EOF
 chmod 0600 /etc/daily-digest/env
 chown digest:digest /etc/daily-digest/env
@@ -89,7 +85,7 @@ sudo -u digest DIGEST_DB_PATH=/var/lib/daily-digest/feargreed.db \
   /opt/daily-digest/.venv/bin/python -m daily_digest feargreed --backfill
 ```
 
-`deploy/install.sh` copies the unit files to `/etc/systemd/system/`, runs `daemon-reload`, then `enable --now` on all four timers. It prints the next fire times via `systemctl list-timers`.
+`deploy/install.sh` copies the unit files to `/etc/systemd/system/`, runs `daemon-reload`, then `enable --now` on every timer that is not already disabled on the host. It prints the next fire times via `systemctl list-timers`.
 
 The service unit declares `StateDirectory=daily-digest`, so systemd creates `/var/lib/daily-digest` owned by the service user and keeps it writable despite `ProtectSystem=strict`. The backfill is idempotent, so re-running it costs two HTTP requests and stores only what is genuinely new.
 
@@ -116,7 +112,7 @@ sudo systemctl start daily-digest@tech.service   # fire manually
 
 ```
 src/daily_digest/
-├── __main__.py         # CLI: python -m daily_digest {tech,memes,news,feargreed}
+├── __main__.py         # CLI: python -m daily_digest {tech,news,feargreed}
 ├── config.py           # env vars + source lists + Fear & Greed thresholds
 ├── feargreed.py        # Reading type, zone rules, alert decision (pure)
 ├── format.py           # MarkdownV2 render
@@ -125,13 +121,11 @@ src/daily_digest/
 └── sources/
     ├── feargreed.py    # CNN + alternative.me JSON, unauth
     ├── hackernews.py   # Firebase REST, unauth
-    ├── reddit.py       # .json endpoints, unauth, UA required
     └── rss.py          # feedparser wrapper
 tests/                  # stdlib unittest + saved API payloads
 deploy/
 ├── daily-digest@.service          # templated oneshot, %i = command name
 ├── daily-digest-tech.timer        # 08:00 Europe/Berlin
-├── daily-digest-memes.timer       # 08:05 Europe/Berlin
 ├── daily-digest-news.timer        # 08:10 Europe/Berlin
 ├── daily-digest-feargreed.timer   # hourly at :17 Europe/Berlin
 └── install.sh
@@ -140,8 +134,7 @@ deploy/
 ## Notes
 
 - **DST is handled by systemd** via `OnCalendar=... Europe/Berlin`. No hardcoded UTC offsets.
-- **Fault tolerance:** `asyncio.gather(..., return_exceptions=True)` means one failing source (e.g. Reddit 429) does not block the other sources — failed ones are logged and skipped.
+- **Fault tolerance:** `asyncio.gather(..., return_exceptions=True)` means one failing feed does not block the others — failed ones are logged and skipped. Tech has only Hacker News, so a failure there fails the run instead of sending an empty digest.
 - **No dedupe across days** in v1. If a story trends two days in a row you will see it twice. Add a SQLite `seen(url, date)` table later if this becomes annoying.
-- **Reddit 429 fallback:** if the unauth `.json` endpoints start rate-limiting, register a free "script" OAuth app (client id + secret only, no user token flow) and add the token to the `User-Agent`/bearer.
 - **The CNN endpoint is unofficial** and can disappear without notice. It answers `418 I'm a teapot. You're a bot.` unless the request carries both a browser `User-Agent` and a `cnn.com` `Referer`. If it starts failing, the news digest drops the stocks line and the hourly check alerts on crypto alone; the failure is logged, not raised.
 - **An index oscillating across a threshold re-alerts on every crossing** (79, 81, 79, 81). Not seen in practice on daily data. If it happens, add a hysteresis band rather than widening the threshold.
