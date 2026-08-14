@@ -22,12 +22,19 @@ install -m 0644 "$SRC_DIR/daily-digest-news.timer"      "$DST_DIR/daily-digest-n
 install -m 0644 "$SRC_DIR/daily-digest-feargreed.timer" "$DST_DIR/daily-digest-feargreed.timer"
 
 systemctl daemon-reload
-systemctl enable --now \
-  daily-digest-tech.timer \
-  daily-digest-memes.timer \
-  daily-digest-news.timer \
-  daily-digest-feargreed.timer
+
+# Enable what is new, leave alone what the operator switched off. Blindly
+# enabling every timer re-arms a disabled digest, and `--now` on a Persistent
+# timer whose last fire is in the past runs the missed job on the spot.
+for name in tech memes news feargreed; do
+  unit="daily-digest-$name.timer"
+  if [[ "$(systemctl is-enabled "$unit" 2>/dev/null)" == "disabled" ]]; then
+    echo "skipping $unit (disabled on this host)"
+    continue
+  fi
+  systemctl enable --now "$unit"
+done
 
 echo
 echo "Installed. Next fires:"
-systemctl list-timers 'daily-digest-*.timer' --no-pager
+systemctl list-timers 'daily-digest-*.timer' --all --no-pager
