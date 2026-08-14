@@ -19,3 +19,11 @@ think also for yourself. if you have good further ideas predent them to me or as
 ---
 
 start the implementation now. no need to write an extra spec and plan doc
+
+---
+
+1w and 1m means "this was the value 1m ago" yes?
+backfill was already run yes?
+thresholds are good
+commit and run the deploy on the VM. if backfill wasnt run yet -> run it as well
+no CI for now. its only a personal/private projects
