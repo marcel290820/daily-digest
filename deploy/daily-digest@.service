@@ -8,6 +8,10 @@ Type=oneshot
 User=digest
 Group=digest
 WorkingDirectory=/opt/daily-digest
+# StateDirectory makes /var/lib/daily-digest writable despite ProtectSystem=strict.
+# Environment= comes first so /etc/daily-digest/env can override the DB path.
+StateDirectory=daily-digest
+Environment=DIGEST_DB_PATH=/var/lib/daily-digest/feargreed.db
 EnvironmentFile=/etc/daily-digest/env
 ExecStart=/opt/daily-digest/.venv/bin/python -m daily_digest %i
 

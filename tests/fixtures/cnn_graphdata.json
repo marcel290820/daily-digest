@@ -1,0 +1,33 @@
+{
+  "fear_and_greed": {
+    "score": 66.7428571428571,
+    "rating": "greed",
+    "timestamp": "2026-08-14T10:16:01+00:00",
+    "previous_close": 66.1428571428571,
+    "previous_1_week": 64.4285714285714,
+    "previous_1_month": 41.057142857142864,
+    "previous_1_year": 63.25714285714287
+  },
+  "fear_and_greed_historical": {
+    "timestamp": 1786702561000.0,
+    "score": 66.7428571428571,
+    "rating": "greed",
+    "data": [
+      {
+        "x": 1755129600000.0,
+        "y": 63.25714285714287,
+        "rating": "greed"
+      },
+      {
+        "x": 1755216000000.0,
+        "y": 63.54285714285715,
+        "rating": "greed"
+      },
+      {
+        "x": 1786702561000.0,
+        "y": 66.7428571428571,
+        "rating": "greed"
+      }
+    ]
+  }
+}
