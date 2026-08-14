@@ -1,0 +1,10 @@
+[Unit]
+Description=Fear & Greed check, hourly at :17 Europe/Berlin
+
+[Timer]
+OnCalendar=*-*-* *:17:00 Europe/Berlin
+Persistent=true
+Unit=daily-digest@feargreed.service
+
+[Install]
+WantedBy=timers.target
