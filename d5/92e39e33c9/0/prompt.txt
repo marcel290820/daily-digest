@@ -1,0 +1,21 @@
+make a plan for integrating CNNs fear and greed index for stocks as well as
+  Alternative.me's fear and greed index for crypto into my daily digest. Python would be
+  advisable.
+
+i gathered the following info already:
+Unofficial endpoint — hit production.dataviz.cnn.io/index/fearandgreed/graph directly and parse the JSON. Free, no key needed, but unofficial (could break anytime).
+Python wrapper — there's a PyPI package called fear-and-greed that fetches CNN's page and returns the current value, category, and timestamp as a simple tuple. Handy if you're scripting in Python
+
+and: API access — Alternative.me has a free public API for the crypto index (no key needed), so you could pull it into a spreadsheet or script automatically
+
+I also want an alerting integrated. this tracker should run more often then the daily tracker and on extreme values which indicate something extremely weird happening i want to be messaged on telegram immediately. and the daily digest also should always contain an update (also during normal situations). 
+
+Im thinking that it could be helpful to maintain the history of the data in a simple database. maybe a sqlite? than we can not only track current values but also include historical development. as an optional last step also include a data backfill. but this would only be done when everything else is done and working. 
+
+since this is more complex also add tests. dependencies like sqlite should be installed using our installer @deploy/install.sh . 
+
+think also for yourself. if you have good further ideas predent them to me or ask me for directions
+
+---
+
+start the implementation now. no need to write an extra spec and plan doc
