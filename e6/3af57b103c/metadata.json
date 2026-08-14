@@ -1,0 +1,34 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "e63af57b103c",
+  "strategy": "manual-commit",
+  "branch": "master",
+  "checkpoints_count": 4,
+  "files_touched": [
+    ".env.example",
+    "CLAUDE.md",
+    "README.md",
+    "deploy/daily-digest-memes.timer",
+    "deploy/install.sh",
+    "pyproject.toml",
+    "src/daily_digest/__main__.py",
+    "src/daily_digest/config.py",
+    "src/daily_digest/sources/reddit.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/e6/3af57b103c/0/metadata.json",
+      "transcript": "/e6/3af57b103c/0/full.jsonl",
+      "compact_transcript": "/e6/3af57b103c/0/transcript.jsonl",
+      "content_hash": "/e6/3af57b103c/0/content_hash.txt",
+      "prompt": "/e6/3af57b103c/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 286,
+    "cache_creation_tokens": 613440,
+    "cache_read_tokens": 21004575,
+    "output_tokens": 136655,
+    "api_call_count": 143
+  }
+}
