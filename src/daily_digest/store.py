@@ -14,7 +14,7 @@ Callers own the connection and close it (`contextlib.closing`).
 
 import sqlite3
 from collections.abc import Iterable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from daily_digest.feargreed import Reading
@@ -77,5 +77,5 @@ def latest(conn: sqlite3.Connection, index: str) -> Reading | None:
         index=index,
         value=value,
         rating=rating,
-        ts=datetime.fromtimestamp(ts, tz=timezone.utc),
+        ts=datetime.fromtimestamp(ts, tz=UTC),
     )

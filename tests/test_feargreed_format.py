@@ -1,10 +1,10 @@
 import unittest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from daily_digest.feargreed import CRYPTO, STOCKS, Reading
 from daily_digest.format import render_feargreed, render_feargreed_alert
 
-TS = datetime(2026, 8, 14, tzinfo=timezone.utc)
+TS = datetime(2026, 8, 14, tzinfo=UTC)
 
 STOCKS_READING = Reading(
     index=STOCKS,

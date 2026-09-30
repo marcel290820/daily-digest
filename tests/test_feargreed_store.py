@@ -1,6 +1,6 @@
 import unittest
 from contextlib import closing
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from daily_digest import store
 from daily_digest.feargreed import (
@@ -14,7 +14,7 @@ from daily_digest.feargreed import (
     zone,
 )
 
-BASE_TS = datetime(2026, 8, 14, tzinfo=timezone.utc)
+BASE_TS = datetime(2026, 8, 14, tzinfo=UTC)
 
 
 def _reading(index: str, value: int, day: int = 0) -> Reading:
@@ -73,6 +73,7 @@ class Store(unittest.TestCase):
             revised = Reading(index=CRYPTO, value=8, rating="Extreme Fear", ts=BASE_TS)
             self.assertEqual(store.record(conn, [revised]), 1)
             newest = store.latest(conn, CRYPTO)
+            assert newest is not None
             self.assertEqual(newest.value, 8)
             self.assertEqual(newest.rating, "Extreme Fear")
 
@@ -97,10 +98,12 @@ class Store(unittest.TestCase):
                 ],
             )
             newest = store.latest(conn, STOCKS)
-            self.assertIsNotNone(newest)
+            assert newest is not None
             self.assertEqual(newest.value, 44)
             self.assertEqual(newest.ts, BASE_TS + timedelta(days=2))
-            self.assertEqual(store.latest(conn, CRYPTO).value, 10)
+            crypto = store.latest(conn, CRYPTO)
+            assert crypto is not None
+            self.assertEqual(crypto.value, 10)
 
     def test_latest_on_empty_index_is_none(self) -> None:
         with closing(store.connect(":memory:")) as conn:

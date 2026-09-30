@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Does
 
-Two Telegram digests sent every morning (Europe/Berlin): Tech & ML at 08:00, World News at 08:10. Delivered to a single Telegram bot/chat. No LLM, no ranking — native source order only. A third command, `feargreed`, runs hourly and alerts when the CNN (stocks) or alternative.me (crypto) Fear & Greed index enters an extreme zone.
+Two Telegram digests sent every morning (Europe/Berlin): Tech & ML at 06:00, World News at 06:10. Delivered to a single Telegram bot/chat. No LLM, no ranking — native source order only. A third command, `feargreed`, runs hourly and alerts when the CNN (stocks) or alternative.me (crypto) Fear & Greed index enters an extreme zone.
 
 ## Stack
 
@@ -14,7 +14,7 @@ Two Telegram digests sent every morning (Europe/Berlin): Tech & ML at 08:00, Wor
 - **Scheduling:** systemd `.timer` units with `OnCalendar=... Europe/Berlin` (DST-safe). One templated `daily-digest@.service` oneshot that takes the command name as `%i`.
 - **State:** one SQLite file of Fear & Greed readings at `DIGEST_DB_PATH` (`/var/lib/daily-digest/feargreed.db` on the VM, via `StateDirectory=`). Nothing else is persisted.
 - **Secrets:** `/etc/daily-digest/env` on the VM (mode 0600), loaded via `EnvironmentFile=`. Never committed. `.env.example` documents the shape.
-- **Tests:** stdlib `unittest`, `python -m unittest discover`. Source parsers are tested against saved API payloads in `tests/fixtures/`; no test touches the network.
+- **Checks:** install `.[dev]`, then run `.codex/check.sh` for Ruff, mypy, and stdlib `unittest`. Source parsers are tested against saved API payloads in `tests/fixtures/`; no test touches the network.
 - **No Docker, no CI/CD, no OAuth, no paid APIs.**
 
 ## Layout
@@ -72,4 +72,3 @@ Real send: set `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, drop `--dry-run`. See `
 - **Failures are logged and skipped**, not raised. The digest still sends whatever other sources returned.
 - **Secrets live only in `/etc/daily-digest/env` on the VM.** Do not inline tokens into code, tests, or commit messages.
 - **Never hardcode UTC offsets** for scheduling; `OnCalendar=... Europe/Berlin` handles DST.
-
