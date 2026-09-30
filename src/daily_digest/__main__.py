@@ -4,7 +4,7 @@ import logging
 import sys
 from contextlib import closing
 
-from daily_digest import Item
+from daily_digest import Item, store
 from daily_digest.config import (
     FEARGREED_EXTREMES,
     RSS_FEEDS_NEWS,
@@ -15,7 +15,6 @@ from daily_digest.feargreed import CRYPTO, STOCKS, Reading, alert_needed
 from daily_digest.format import render, render_feargreed, render_feargreed_alert
 from daily_digest.sources import feargreed as feargreed_source
 from daily_digest.sources import hackernews, rss
-from daily_digest import store
 
 log = logging.getLogger("daily_digest")
 
@@ -34,6 +33,8 @@ async def _gather_news() -> list[Item]:
         if isinstance(result, Exception):
             log.warning("feed %s failed: %s", name, result)
             continue
+        if isinstance(result, BaseException):
+            raise result
         items.extend(result)
     return items
 
@@ -49,6 +50,8 @@ async def _gather_feargreed() -> list[Reading]:
         if isinstance(result, Exception):
             log.warning("fear & greed %s failed: %s", label, result)
             continue
+        if isinstance(result, BaseException):
+            raise result
         readings.append(result)
     return readings
 
@@ -71,6 +74,7 @@ async def _run(digest: str, dry_run: bool) -> int:
         print(text)
         return 0
     from daily_digest.telegram import send_markdown
+
     await send_markdown(text)
     log.info("sent %d items for %s", len(items), digest)
     return 0
@@ -109,6 +113,7 @@ async def _run_feargreed(dry_run: bool) -> int:
             return 0
 
         from daily_digest.telegram import send_markdown
+
         for text in alerts:
             await send_markdown(text)
         store.record(conn, readings)
@@ -128,13 +133,17 @@ async def _run_backfill(dry_run: bool) -> int:
         if isinstance(result, Exception):
             log.warning("fear & greed %s history failed: %s", label, result)
             continue
+        if isinstance(result, BaseException):
+            raise result
         readings.extend(result)
 
     if not readings:
         log.error("fear & greed: no history fetched")
         return 1
     if dry_run:
-        print(f"backfill: {len(readings)} readings fetched, nothing written (--dry-run)")
+        print(
+            f"backfill: {len(readings)} readings fetched, nothing written (--dry-run)"
+        )
         return 0
 
     with closing(store.connect(feargreed_db_path())) as conn:
@@ -158,7 +167,9 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     parser = argparse.ArgumentParser(prog="daily-digest")
     parser.add_argument("command", choices=COMMANDS)
-    parser.add_argument("--dry-run", action="store_true", help="print to stdout, skip Telegram")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="print to stdout, skip Telegram"
+    )
     parser.add_argument(
         "--backfill",
         action="store_true",

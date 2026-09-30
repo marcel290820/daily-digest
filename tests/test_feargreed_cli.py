@@ -1,17 +1,18 @@
+import asyncio
 import io
 import os
 import sqlite3
 import tempfile
 import unittest
 from contextlib import redirect_stdout
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest import mock
 
 from daily_digest import __main__ as cli
 from daily_digest.config import FEARGREED_EXTREMES
 from daily_digest.feargreed import CRYPTO, STOCKS, Reading
 
-TS = datetime(2026, 8, 14, tzinfo=timezone.utc)
+TS = datetime(2026, 8, 14, tzinfo=UTC)
 STOCKS_READING = Reading(index=STOCKS, value=67, rating="Greed", ts=TS)
 CRYPTO_READING = Reading(index=CRYPTO, value=29, rating="Fear", ts=TS)
 
@@ -34,6 +35,22 @@ class Thresholds(unittest.TestCase):
 
 
 class NewsDigest(unittest.IsolatedAsyncioTestCase):
+    async def test_cancelled_source_propagates(self) -> None:
+        with (
+            mock.patch.object(
+                cli.feargreed_source,
+                "fetch_stocks",
+                mock.AsyncMock(side_effect=asyncio.CancelledError),
+            ),
+            mock.patch.object(
+                cli.feargreed_source,
+                "fetch_crypto",
+                mock.AsyncMock(return_value=CRYPTO_READING),
+            ),
+            self.assertRaises(asyncio.CancelledError),
+        ):
+            await cli._gather_feargreed()
+
     async def test_appends_the_section_without_touching_the_database(self) -> None:
         """The checker owns the database.
 
@@ -45,13 +62,17 @@ class NewsDigest(unittest.IsolatedAsyncioTestCase):
             out = io.StringIO()
             with (
                 mock.patch.dict(os.environ, {"DIGEST_DB_PATH": db}),
-                mock.patch.object(cli.rss, "top_entries", mock.AsyncMock(return_value=[])),
                 mock.patch.object(
-                    cli.feargreed_source, "fetch_stocks",
+                    cli.rss, "top_entries", mock.AsyncMock(return_value=[])
+                ),
+                mock.patch.object(
+                    cli.feargreed_source,
+                    "fetch_stocks",
                     mock.AsyncMock(return_value=STOCKS_READING),
                 ),
                 mock.patch.object(
-                    cli.feargreed_source, "fetch_crypto",
+                    cli.feargreed_source,
+                    "fetch_crypto",
                     mock.AsyncMock(return_value=CRYPTO_READING),
                 ),
                 redirect_stdout(out),
@@ -69,13 +90,17 @@ class NewsDigest(unittest.IsolatedAsyncioTestCase):
                 mock.patch.dict(
                     os.environ, {"DIGEST_DB_PATH": os.path.join(tmp, "feargreed.db")}
                 ),
-                mock.patch.object(cli.rss, "top_entries", mock.AsyncMock(return_value=[])),
                 mock.patch.object(
-                    cli.feargreed_source, "fetch_stocks",
+                    cli.rss, "top_entries", mock.AsyncMock(return_value=[])
+                ),
+                mock.patch.object(
+                    cli.feargreed_source,
+                    "fetch_stocks",
                     mock.AsyncMock(side_effect=RuntimeError("cnn 418")),
                 ),
                 mock.patch.object(
-                    cli.feargreed_source, "fetch_crypto",
+                    cli.feargreed_source,
+                    "fetch_crypto",
                     mock.AsyncMock(side_effect=RuntimeError("api down")),
                 ),
                 redirect_stdout(out),
@@ -90,10 +115,14 @@ class Checker(unittest.IsolatedAsyncioTestCase):
         return (
             mock.patch.dict(os.environ, {"DIGEST_DB_PATH": db}),
             mock.patch.object(
-                cli.feargreed_source, "fetch_stocks", mock.AsyncMock(return_value=stocks)
+                cli.feargreed_source,
+                "fetch_stocks",
+                mock.AsyncMock(return_value=stocks),
             ),
             mock.patch.object(
-                cli.feargreed_source, "fetch_crypto", mock.AsyncMock(return_value=crypto)
+                cli.feargreed_source,
+                "fetch_crypto",
+                mock.AsyncMock(return_value=crypto),
             ),
         )
 
@@ -123,9 +152,9 @@ class Checker(unittest.IsolatedAsyncioTestCase):
                     "daily_digest.telegram.send_markdown",
                     mock.AsyncMock(side_effect=RuntimeError("telegram down")),
                 ),
+                self.assertRaises(RuntimeError),
             ):
-                with self.assertRaises(RuntimeError):
-                    await cli._run_feargreed(dry_run=False)
+                await cli._run_feargreed(dry_run=False)
             self.assertEqual(_stored(db), [])
 
     async def test_both_sources_failing_exits_non_zero(self) -> None:
@@ -134,11 +163,13 @@ class Checker(unittest.IsolatedAsyncioTestCase):
             with (
                 mock.patch.dict(os.environ, {"DIGEST_DB_PATH": db}),
                 mock.patch.object(
-                    cli.feargreed_source, "fetch_stocks",
+                    cli.feargreed_source,
+                    "fetch_stocks",
                     mock.AsyncMock(side_effect=RuntimeError("cnn 418")),
                 ),
                 mock.patch.object(
-                    cli.feargreed_source, "fetch_crypto",
+                    cli.feargreed_source,
+                    "fetch_crypto",
                     mock.AsyncMock(side_effect=RuntimeError("api down")),
                 ),
             ):
@@ -151,11 +182,15 @@ class Checker(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as tmp:
             db = os.path.join(tmp, "feargreed.db")
             env, stocks, crypto = self._patches(db, STOCKS_READING, extreme)
-            with env, stocks, crypto, mock.patch(
-                "daily_digest.telegram.send_markdown", sender
+            with (
+                env,
+                stocks,
+                crypto,
+                mock.patch("daily_digest.telegram.send_markdown", sender),
             ):
                 self.assertEqual(await cli._run_feargreed(dry_run=False), 0)
                 self.assertEqual(sender.await_count, 1)
+                assert sender.await_args is not None
                 self.assertIn("Crypto", sender.await_args.args[0])
                 # Same reading an hour later: the index has not crossed again.
                 self.assertEqual(await cli._run_feargreed(dry_run=False), 0)

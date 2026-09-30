@@ -9,7 +9,7 @@ expected outcome. Callers run these under `asyncio.gather(...,
 return_exceptions=True)` and skip the source that failed.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import httpx
 
@@ -28,23 +28,23 @@ _TIMEOUT = 15.0
 CNN_HEADERS = {"User-Agent": CNN_USER_AGENT, "Referer": CNN_REFERER}
 
 
-def _value(raw: object) -> int:
+def _value(raw: str | float) -> int:
     value = round(float(raw))
     if not 0 <= value <= 100:
         raise ValueError(f"fear & greed value out of range: {raw!r}")
     return value
 
 
-def _optional_value(raw: object | None) -> int | None:
+def _optional_value(raw: str | float | None) -> int | None:
     return None if raw is None else _value(raw)
 
 
 def _cnn_ts(raw: object) -> datetime:
     """CNN sends ISO-8601 for the current value, epoch millis for history."""
     if isinstance(raw, (int, float)):
-        return datetime.fromtimestamp(raw / 1000, tz=timezone.utc)
+        return datetime.fromtimestamp(raw / 1000, tz=UTC)
     parsed = datetime.fromisoformat(str(raw))
-    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
 
 
 def parse_cnn(payload: dict) -> Reading:
@@ -77,7 +77,7 @@ def _crypto_reading(entry: dict) -> Reading:
         index=CRYPTO,
         value=_value(entry["value"]),
         rating=str(entry["value_classification"]).title(),
-        ts=datetime.fromtimestamp(int(entry["timestamp"]), tz=timezone.utc),
+        ts=datetime.fromtimestamp(int(entry["timestamp"]), tz=UTC),
     )
 
 

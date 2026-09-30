@@ -4,8 +4,8 @@ Two Telegram digests delivered every morning (Europe/Berlin), plus an hourly Fea
 
 | Time  | Digest | Sources |
 |-------|--------|---------|
-| 08:00 | Tech & ML | Hacker News, top 10 |
-| 08:10 | World News | Tagesschau RSS, Handelsblatt RSS, plus a Fear & Greed section |
+| 06:00 | Tech & ML | Hacker News, top 10 |
+| 06:10 | World News | Tagesschau RSS, Handelsblatt RSS, plus a Fear & Greed section |
 | hourly at :17 | Fear & Greed check | CNN (stocks), alternative.me (crypto) |
 
 No auth anywhere. No Docker. One Python package, three systemd timers, one Telegram bot token, one SQLite file.
@@ -14,7 +14,7 @@ No auth anywhere. No Docker. One Python package, three systemd timers, one Teleg
 
 Two indices, each 0-100: CNN's for US stocks, alternative.me's for crypto.
 
-- The **08:10 news digest** always carries a section with both current values and how they compare to yesterday, a week ago and a month ago.
+- The **06:10 news digest** always carries a section with both current values and how they compare to yesterday, a week ago and a month ago.
 - The **hourly check** sends a separate Telegram alert the moment an index enters an extreme zone. Stocks are extreme at 20 or below and 80 or above; crypto is stricter, 10 and 90, because it parks in its extreme zones for weeks during a trend. Thresholds are `FEARGREED_EXTREMES` in `config.py`.
 - **One alert per crossing.** An index that stays extreme stays quiet; it has to leave the zone and come back to alert again. The comparison is against the last reading in the database, so a restart does not re-alert.
 - Every reading the hourly check takes is stored in SQLite (`DIGEST_DB_PATH`, default `/var/lib/daily-digest/feargreed.db` on the VM). The digest only reads the APIs, so it can never advance the state the alert logic compares against.
@@ -45,7 +45,14 @@ Send for real (requires `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID`):
 .venv/bin/python -m daily_digest tech
 ```
 
-Tests (stdlib `unittest`, no network, no extra dependencies):
+Install the pinned development tools and run lint, type checks, and tests:
+
+```bash
+.venv/bin/pip install -e '.[dev]'
+.codex/check.sh
+```
+
+Tests only (stdlib `unittest`, no network, no extra dependencies):
 
 ```bash
 .venv/bin/python -m unittest discover
@@ -125,8 +132,8 @@ src/daily_digest/
 tests/                  # stdlib unittest + saved API payloads
 deploy/
 ├── daily-digest@.service          # templated oneshot, %i = command name
-├── daily-digest-tech.timer        # 08:00 Europe/Berlin
-├── daily-digest-news.timer        # 08:10 Europe/Berlin
+├── daily-digest-tech.timer        # 06:00 Europe/Berlin
+├── daily-digest-news.timer        # 06:10 Europe/Berlin
 ├── daily-digest-feargreed.timer   # hourly at :17 Europe/Berlin
 └── install.sh
 ```

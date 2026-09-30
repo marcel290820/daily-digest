@@ -1,6 +1,6 @@
 import json
 import unittest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from daily_digest.feargreed import CRYPTO, STOCKS
@@ -29,7 +29,7 @@ class ParseCnn(unittest.TestCase):
         self.assertEqual(reading.value, 67)  # 66.74 rounded at the boundary
         self.assertEqual(reading.rating, "Greed")  # CNN sends it lowercase
         self.assertEqual(
-            reading.ts, datetime(2026, 8, 14, 10, 16, 1, tzinfo=timezone.utc)
+            reading.ts, datetime(2026, 8, 14, 10, 16, 1, tzinfo=UTC)
         )
         self.assertEqual(reading.previous_close, 66)
         self.assertEqual(reading.previous_week, 64)
@@ -41,7 +41,7 @@ class ParseCnn(unittest.TestCase):
         first = readings[0]
         self.assertEqual(first.index, STOCKS)
         self.assertEqual(first.value, 63)
-        self.assertEqual(first.ts, datetime(2025, 8, 14, tzinfo=timezone.utc))
+        self.assertEqual(first.ts, datetime(2025, 8, 14, tzinfo=UTC))
         self.assertIsNone(first.previous_close)
 
     def test_out_of_range_value_is_rejected(self) -> None:
@@ -70,7 +70,7 @@ class ParseCrypto(unittest.TestCase):
         self.assertEqual(reading.value, 29)
         self.assertEqual(reading.rating, "Fear")
         self.assertEqual(
-            reading.ts, datetime.fromtimestamp(1786665600, tz=timezone.utc)
+            reading.ts, datetime.fromtimestamp(1786665600, tz=UTC)
         )
         self.assertEqual(reading.previous_close, 29)
         self.assertEqual(reading.previous_week, 29)
@@ -108,7 +108,7 @@ class ParseCrypto(unittest.TestCase):
         self.assertEqual(readings[-1].value, 25)
         self.assertEqual(readings[-1].rating, "Extreme Fear")
         self.assertEqual(
-            readings[-1].ts, datetime.fromtimestamp(1784073600, tz=timezone.utc)
+            readings[-1].ts, datetime.fromtimestamp(1784073600, tz=UTC)
         )
 
 

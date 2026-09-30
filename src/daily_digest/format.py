@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime
 
 from daily_digest import Item
 from daily_digest.feargreed import INDEX_LABELS, Reading
@@ -24,7 +24,7 @@ def _score_tag(item: Item) -> str:
 
 
 def render(heading_emoji: str, heading: str, items: list[Item]) -> str:
-    today = date.today().isoformat()
+    today = datetime.now().astimezone().date().isoformat()
     lines = [f"*{escape(heading_emoji + ' ' + heading)} — {escape(today)}*", ""]
     if not items:
         lines.append(escape("(no items today)"))
