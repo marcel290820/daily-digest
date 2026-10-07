@@ -145,9 +145,8 @@ class SystemAlerts(unittest.IsolatedAsyncioTestCase):
         self.assertIn("CPU history invalid", report)
 
     async def test_many_issues_fit_one_message(self) -> None:
-        failed = "\n".join(
-            f"unit{i}.service loaded failed failed x" for i in range(200)
-        )
+        name = "a.-_" * 100  # every char needs escaping, so escaped length doubles
+        failed = "\n".join(f"{name}{i} loaded failed failed x" for i in range(200))
         report = await self._report({"status": True, "alarms": {}}, failed=failed)
         self.assertLess(len(report), 4096)
         self.assertEqual(report.count("```"), 2)
