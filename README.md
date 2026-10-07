@@ -1,14 +1,15 @@
 # daily-digest
 
-Two Telegram digests delivered every morning (Europe/Berlin), plus an hourly Fear & Greed watch:
+Two Telegram digests delivered every morning (Europe/Berlin), plus an hourly Fear & Greed watch and a daily workstation report:
 
 | Time  | Digest | Sources |
 |-------|--------|---------|
 | 06:00 | Tech & ML | Hacker News, top 10 |
 | 06:10 | World News | Tagesschau RSS, Handelsblatt RSS, plus a Fear & Greed section |
+| 06:20 | System report | Local Netdata history and host state |
 | hourly at :17 | Fear & Greed check | CNN (stocks), alternative.me (crypto) |
 
-No auth anywhere. No Docker. One Python package, three systemd timers, one Telegram bot token, one SQLite file.
+No auth anywhere. No Docker. One Python package, four systemd timers, one Telegram bot token, one SQLite file.
 
 ## Fear & Greed
 
@@ -18,6 +19,23 @@ Two indices, each 0-100: CNN's for US stocks, alternative.me's for crypto.
 - The **hourly check** sends a separate Telegram alert the moment an index enters an extreme zone. Stocks are extreme at 20 or below and 80 or above; crypto is stricter, 10 and 90, because it parks in its extreme zones for weeks during a trend. Thresholds are `FEARGREED_EXTREMES` in `config.py`.
 - **One alert per crossing.** An index that stays extreme stays quiet; it has to leave the zone and come back to alert again. The comparison is against the last reading in the database, so a restart does not re-alert.
 - Every reading the hourly check takes is stored in SQLite (`DIGEST_DB_PATH`, default `/var/lib/daily-digest/feargreed.db` on the VM). The digest only reads the APIs, so it can never advance the state the alert logic compares against.
+
+## System report
+
+The `system` command opens with a verdict: "All good", or a named list of what
+to check (inactive or failed services, active Netdata alerts, reboot required,
+CPU/RAM/disk at 90% or more, under 20h of history). A small table follows with
+24-hour CPU and RAM average and peak (5-minute averages, RAM excludes caches)
+and current disk use. Healthy details are left out. Monitoring failures are
+reported as issues, never as zero usage or a healthy system.
+
+This is a daily summary. Netdata's immediate Telegram threshold alerts continue
+separately. The summary runs as the existing unprivileged `digest` user and uses
+the existing Telegram credentials. It does not need sudo or a cloud account.
+It cannot report a complete VPS outage because it runs on the VPS itself.
+
+Preview on the VPS: `.venv/bin/python -m daily_digest system --dry-run`.
+The timer runs at 06:20 Europe/Berlin and catches up once after a missed run.
 
 ## Requirements
 
@@ -119,7 +137,7 @@ sudo systemctl start daily-digest@tech.service   # fire manually
 
 ```
 src/daily_digest/
-├── __main__.py         # CLI: python -m daily_digest {tech,news,feargreed}
+├── __main__.py         # CLI: python -m daily_digest {tech,news,feargreed,system}
 ├── config.py           # env vars + source lists + Fear & Greed thresholds
 ├── feargreed.py        # Reading type, zone rules, alert decision (pure)
 ├── format.py           # MarkdownV2 render
@@ -135,6 +153,7 @@ deploy/
 ├── daily-digest-tech.timer        # 06:00 Europe/Berlin
 ├── daily-digest-news.timer        # 06:10 Europe/Berlin
 ├── daily-digest-feargreed.timer   # hourly at :17 Europe/Berlin
+├── daily-digest-system.timer      # 06:20 Europe/Berlin
 └── install.sh
 ```
 

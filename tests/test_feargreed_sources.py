@@ -28,9 +28,7 @@ class ParseCnn(unittest.TestCase):
         self.assertEqual(reading.index, STOCKS)
         self.assertEqual(reading.value, 67)  # 66.74 rounded at the boundary
         self.assertEqual(reading.rating, "Greed")  # CNN sends it lowercase
-        self.assertEqual(
-            reading.ts, datetime(2026, 8, 14, 10, 16, 1, tzinfo=UTC)
-        )
+        self.assertEqual(reading.ts, datetime(2026, 8, 14, 10, 16, 1, tzinfo=UTC))
         self.assertEqual(reading.previous_close, 66)
         self.assertEqual(reading.previous_week, 64)
         self.assertEqual(reading.previous_month, 41)
@@ -69,9 +67,7 @@ class ParseCrypto(unittest.TestCase):
         self.assertEqual(reading.index, CRYPTO)
         self.assertEqual(reading.value, 29)
         self.assertEqual(reading.rating, "Fear")
-        self.assertEqual(
-            reading.ts, datetime.fromtimestamp(1786665600, tz=UTC)
-        )
+        self.assertEqual(reading.ts, datetime.fromtimestamp(1786665600, tz=UTC))
         self.assertEqual(reading.previous_close, 29)
         self.assertEqual(reading.previous_week, 29)
         self.assertEqual(reading.previous_month, 25)
@@ -107,9 +103,7 @@ class ParseCrypto(unittest.TestCase):
         self.assertEqual(len(readings), 31)
         self.assertEqual(readings[-1].value, 25)
         self.assertEqual(readings[-1].rating, "Extreme Fear")
-        self.assertEqual(
-            readings[-1].ts, datetime.fromtimestamp(1784073600, tz=UTC)
-        )
+        self.assertEqual(readings[-1].ts, datetime.fromtimestamp(1784073600, tz=UTC))
 
 
 if __name__ == "__main__":

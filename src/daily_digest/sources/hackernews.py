@@ -37,9 +37,7 @@ async def top_stories(limit: int) -> list[Item]:
         if not title:
             continue
         url = obj.get("url") or f"https://news.ycombinator.com/item?id={obj['id']}"
-        items.append(
-            Item(title=title, url=url, source="HN", score=obj.get("score", 0))
-        )
+        items.append(Item(title=title, url=url, source="HN", score=obj.get("score", 0)))
         if len(items) >= limit:
             break
     return items

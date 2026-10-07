@@ -162,10 +162,26 @@ async def _run_backfill(dry_run: bool) -> int:
     return 0
 
 
-COMMANDS = [*sorted(DIGESTS), "feargreed"]
+async def _run_system(dry_run: bool) -> int:
+    from daily_digest.system import render_system
+
+    text = await render_system()
+    if dry_run:
+        print(text)
+    else:
+        from daily_digest.telegram import send_markdown
+
+        await send_markdown(text)
+        log.info("sent system report")
+    return 0
+
+
+COMMANDS = [*sorted(DIGESTS), "feargreed", "system"]
 
 
 async def _dispatch(command: str, dry_run: bool, backfill: bool) -> int:
+    if command == "system":
+        return await _run_system(dry_run)
     if command != "feargreed":
         return await _run(command, dry_run)
     if backfill:

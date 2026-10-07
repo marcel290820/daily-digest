@@ -55,9 +55,7 @@ def record(conn: sqlite3.Connection, readings: Iterable[Reading]) -> int:
     a stored value wins: leaving the old one would make the next check see a
     zone the index has already left and alert on the same crossing again.
     """
-    rows = [
-        (r.index, int(r.ts.timestamp()), r.value, r.rating) for r in readings
-    ]
+    rows = [(r.index, int(r.ts.timestamp()), r.value, r.rating) for r in readings]
     if not rows:
         return 0
     with conn:

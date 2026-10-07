@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Does
 
-Two Telegram digests sent every morning (Europe/Berlin): Tech & ML at 06:00, World News at 06:10. Delivered to a single Telegram bot/chat. No LLM, no ranking — native source order only. A third command, `feargreed`, runs hourly and alerts when the CNN (stocks) or alternative.me (crypto) Fear & Greed index enters an extreme zone.
+Two Telegram digests sent every morning (Europe/Berlin): Tech & ML at 06:00, World News at 06:10. Delivered to a single Telegram bot/chat. No LLM, no ranking — native source order only. The `feargreed` command runs hourly and alerts when the CNN (stocks) or alternative.me (crypto) Fear & Greed index enters an extreme zone. The `system` command sends a workstation report at 06:20 from local Netdata history and read-only host state.
 
 ## Stack
 
@@ -21,7 +21,7 @@ Two Telegram digests sent every morning (Europe/Berlin): Tech & ML at 06:00, Wor
 
 ```
 src/daily_digest/
-├── __main__.py         # CLI: python -m daily_digest {tech,news,feargreed} [--dry-run] [--backfill]
+├── __main__.py         # CLI: python -m daily_digest {tech,news,feargreed,system} [--dry-run] [--backfill]
 ├── __init__.py         # Item dataclass (title, url, source, score)
 ├── config.py           # env vars + RSS list + per-source limits + F&G thresholds
 ├── feargreed.py        # Reading dataclass, zone(), alert_needed() — pure, no I/O
@@ -39,6 +39,7 @@ deploy/
 ├── daily-digest@.service
 ├── daily-digest-{tech,news}.timer
 ├── daily-digest-feargreed.timer
+├── daily-digest-system.timer
 └── install.sh
 ```
 

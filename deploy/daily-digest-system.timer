@@ -1,0 +1,10 @@
+[Unit]
+Description=System report at 06:20 Europe/Berlin
+
+[Timer]
+OnCalendar=*-*-* 06:20:00 Europe/Berlin
+Persistent=true
+Unit=daily-digest@system.service
+
+[Install]
+WantedBy=timers.target
