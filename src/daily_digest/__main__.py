@@ -3,16 +3,23 @@ import asyncio
 import logging
 import sys
 from contextlib import closing
+from datetime import datetime
 
 from daily_digest import Item, store
 from daily_digest.config import (
     FEARGREED_EXTREMES,
     RSS_FEEDS_NEWS,
     TECH_HN_LIMIT,
+    birth_date,
     feargreed_db_path,
 )
 from daily_digest.feargreed import CRYPTO, STOCKS, Reading, alert_needed
-from daily_digest.format import render, render_feargreed, render_feargreed_alert
+from daily_digest.format import (
+    render,
+    render_feargreed,
+    render_feargreed_alert,
+    render_life,
+)
 from daily_digest.sources import feargreed as feargreed_source
 from daily_digest.sources import hackernews, rss
 
@@ -66,6 +73,9 @@ async def _run(digest: str, dry_run: bool) -> int:
     emoji, heading, gather = DIGESTS[digest]
     items = await gather()
     text = render(emoji, heading, items)
+    if digest == "tech" and (birth := birth_date()) is not None:
+        # First line, so the notification preview shows it.
+        text = render_life(birth, datetime.now().astimezone().date()) + "\n\n" + text
     if digest == "news":
         readings = await _gather_feargreed()
         if readings:

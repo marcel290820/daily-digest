@@ -1,4 +1,5 @@
 import os
+from datetime import date
 
 from daily_digest.feargreed import CRYPTO, STOCKS
 
@@ -23,6 +24,12 @@ def telegram_chat_id() -> str:
 
 def feargreed_db_path() -> str:
     return os.environ.get("DIGEST_DB_PATH", "feargreed.db")
+
+
+def birth_date() -> date | None:
+    """Optional. Unset skips the life line; a malformed value raises."""
+    val = os.environ.get("BIRTH_DATE")
+    return date.fromisoformat(val) if val else None
 
 
 RSS_FEEDS_NEWS: tuple[tuple[str, str, int], ...] = (

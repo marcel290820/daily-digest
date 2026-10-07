@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 from daily_digest import Item
 from daily_digest.feargreed import INDEX_LABELS, Reading
@@ -67,4 +67,18 @@ def render_feargreed_alert(current: Reading, previous: Reading | None) -> str:
     return (
         f"*{escape('🚨 ' + label + ' Fear & Greed')}*\n"
         f"*{current.value}* {escape(current.rating)} {context}"
+    )
+
+
+def render_life(birth: date, today: date, years: int = 80) -> str:
+    if birth > today:
+        raise ValueError(f"birth date {birth} is in the future")
+    # Day offset from the 1st so a 29 Feb birthday lands on 1 Mar in common years.
+    end = date(birth.year + years, birth.month, 1) + timedelta(days=birth.day - 1)
+    share = (today - birth).days / (end - birth).days
+    filled = min(10, int(share * 10))
+    bar = "▓" * filled + "░" * (10 - filled)
+    return escape(
+        f"⏳ {bar} {share:.1%} of {years} years lived · "
+        f"{max(0, (end - today).days):,} days left"
     )
