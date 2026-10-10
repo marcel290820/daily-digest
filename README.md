@@ -23,8 +23,9 @@ Two indices, each 0-100: CNN's for US stocks, alternative.me's for crypto.
 ## System report
 
 The `system` command opens with a verdict: "All good", or a named list of what
-to check (inactive or failed services, active Netdata alerts, reboot required,
-CPU/RAM/disk at 90% or more, under 20h of history). A small table follows with
+to check (inactive services from `SYSTEM_SERVICES`, failed units, active Netdata
+alerts, reboot required, CPU/RAM/disk at 90% or more, under 20h of history). A
+small table follows with
 24-hour CPU and RAM average and peak (5-minute averages, RAM excludes caches)
 and current disk use. Healthy details are left out. Monitoring failures are
 reported as issues, never as zero usage or a healthy system.
@@ -98,6 +99,7 @@ install -d -m 0700 -o digest -g digest /etc/daily-digest
 cat >/etc/daily-digest/env <<'EOF'
 TELEGRAM_BOT_TOKEN=...
 TELEGRAM_CHAT_ID=...
+SYSTEM_SERVICES=...
 EOF
 chmod 0600 /etc/daily-digest/env
 chown digest:digest /etc/daily-digest/env

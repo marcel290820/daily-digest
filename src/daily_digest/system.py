@@ -14,11 +14,11 @@ from zoneinfo import ZoneInfo
 
 import httpx
 
+from daily_digest.config import system_services
 from daily_digest.format import escape
 
 log = logging.getLogger("daily_digest.system")
 _NETDATA = "http://127.0.0.1:19999/api/v1"
-_SERVICES = ("ssh", "cron")
 T = TypeVar("T")
 _CHARTS = {"CPU": "system.cpu", "RAM": "system.ram"}
 _HIGH_PCT = 90
@@ -111,6 +111,7 @@ async def render_system() -> str:
         "group": "average",
         "format": "json",
     }
+    services = system_services()
     async with httpx.AsyncClient(timeout=15, trust_env=False) as client:
         *histories, alarms = await asyncio.gather(
             *(
@@ -121,13 +122,16 @@ async def render_system() -> str:
             return_exceptions=True,
         )
     states, failed = await asyncio.gather(
+        # With no names, `systemctl show` would describe the manager instead.
         _command(
             "systemctl",
             "show",
-            *(f"{name}.service" for name in _SERVICES),
+            *(f"{name}.service" for name in services),
             "--property=Id,ActiveState,SubState",
             "--no-pager",
-        ),
+        )
+        if services
+        else asyncio.sleep(0),
         _command(
             "systemctl",
             "list-units",
@@ -174,7 +178,9 @@ async def render_system() -> str:
     if Path("/var/run/reboot-required").exists():
         issues.append("Reboot required")
 
-    if (text := _unwrap(states, "Service check", issues)) is not None:
+    if not services:
+        issues.append("Services not checked: SYSTEM_SERVICES unset")
+    elif (text := _unwrap(states, "Service check", issues)) is not None:
         blocks = text.strip().split("\n\n")
         for block in blocks:
             state = dict(
@@ -185,7 +191,7 @@ async def render_system() -> str:
                     f"{state.get('Id', 'unknown')} "
                     f"{state.get('ActiveState', 'unknown')}"
                 )
-        if len(blocks) != len(_SERVICES):
+        if len(blocks) != len(services):
             issues.append("Service check incomplete")
     if (text := _unwrap(failed, "Failed-unit check", issues)) is not None:
         issues.extend(

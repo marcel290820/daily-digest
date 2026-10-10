@@ -1,11 +1,13 @@
 import contextlib
 import io
+import os
 import unittest
 from unittest import mock
 
 import httpx
 
 from daily_digest import __main__ as cli
+from daily_digest.config import system_services
 from daily_digest.system import render_system, samples, usage
 
 
@@ -33,6 +35,37 @@ class SystemMetrics(unittest.TestCase):
                 samples({"labels": ["time", "used"], "data": data})
 
 
+_SERVICES_ENV = mock.patch.dict(os.environ, {"SYSTEM_SERVICES": "ssh,cron"})
+
+
+class SystemServices(unittest.IsolatedAsyncioTestCase):
+    def test_names_are_split_and_option_like_entries_rejected(self) -> None:
+        with mock.patch.dict(os.environ, {"SYSTEM_SERVICES": " ssh, cron ,,"}):
+            self.assertEqual(system_services(), ("ssh", "cron"))
+        for bad in ("--all", "ssh,-H host", "a;b"):
+            with (
+                self.subTest(bad=bad),
+                mock.patch.dict(os.environ, {"SYSTEM_SERVICES": bad}),
+                self.assertRaises(ValueError),
+            ):
+                system_services()
+
+    async def test_unset_services_are_an_issue_not_a_manager_query(self) -> None:
+        command = mock.AsyncMock(return_value="")
+        with (
+            mock.patch.dict(os.environ, {"SYSTEM_SERVICES": ""}),
+            mock.patch(
+                "daily_digest.system._query",
+                mock.AsyncMock(side_effect=httpx.ConnectError("offline")),
+            ),
+            mock.patch("daily_digest.system._command", command),
+        ):
+            report = await render_system()
+        self.assertIn(r"Services not checked: SYSTEM\_SERVICES unset", report)
+        self.assertEqual([c.args[1] for c in command.await_args_list], ["list-units"])
+
+
+@_SERVICES_ENV
 class SystemCommand(unittest.IsolatedAsyncioTestCase):
     async def test_dry_run_dispatch_does_not_send(self) -> None:
         sender = mock.AsyncMock()
@@ -94,7 +127,7 @@ class SystemCommand(unittest.IsolatedAsyncioTestCase):
                 "daily_digest.system._command",
                 mock.AsyncMock(
                     side_effect=[
-                        "Id=netdata.service\nActiveState=inactive\nSubState=dead",
+                        "Id=ssh.service\nActiveState=inactive\nSubState=dead",
                         "daily-digest@news.service loaded failed failed News",
                     ]
                 ),
@@ -102,11 +135,12 @@ class SystemCommand(unittest.IsolatedAsyncioTestCase):
             mock.patch("daily_digest.system.Path.read_text", return_value="3600 0"),
         ):
             report = await render_system()
-        self.assertIn(r"netdata\.service inactive", report)
+        self.assertIn(r"ssh\.service inactive", report)
         self.assertIn("Service check incomplete", report)
         self.assertIn(r"daily\-digest@news\.service failed", report)
 
 
+@_SERVICES_ENV
 class SystemAlerts(unittest.IsolatedAsyncioTestCase):
     async def _report(
         self, alarms: object, cpu: object = None, failed: str | None = None

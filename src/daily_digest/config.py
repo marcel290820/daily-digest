@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import date
 
 from daily_digest.feargreed import CRYPTO, STOCKS
@@ -30,6 +31,17 @@ def birth_date() -> date | None:
     """Optional. Unset skips the life line; a malformed value raises."""
     val = os.environ.get("BIRTH_DATE")
     return date.fromisoformat(val) if val else None
+
+
+def system_services() -> tuple[str, ...]:
+    """Comma-separated service names, without `.service`. Unset checks none."""
+    names = tuple(
+        n.strip() for n in os.environ.get("SYSTEM_SERVICES", "").split(",") if n.strip()
+    )
+    # A leading "-" would reach systemctl as an option, not a unit name.
+    if bad := [n for n in names if not re.fullmatch(r"[\w@.:][\w@.:-]*", n)]:
+        raise ValueError(f"Invalid SYSTEM_SERVICES entries: {bad}")
+    return names
 
 
 RSS_FEEDS_NEWS: tuple[tuple[str, str, int], ...] = (
